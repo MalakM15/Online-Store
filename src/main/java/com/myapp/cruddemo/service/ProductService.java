@@ -1,7 +1,12 @@
 package com.myapp.cruddemo.service;
 
 import com.myapp.cruddemo.dao.ProductRepository;
+import com.myapp.cruddemo.dao.CategoryRepository;
 import com.myapp.cruddemo.entity.Product;
+import com.myapp.cruddemo.entity.Category;
+
+import com.myapp.cruddemo.dto.ProductResponseDto;
+import com.myapp.cruddemo.dto.ProductRequestDto;
 import com.myapp.cruddemo.exception.*;
 
 import org.springframework.stereotype.Service;
@@ -14,33 +19,70 @@ import java.util.List;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
 
-    public ProductService(ProductRepository productRepository) {
+
+    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository) {
         this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
     }
 
-    public Page<Product> getAllProducts(Pageable pageable) {
-        return productRepository.findAll( pageable);
+    public Page<ProductResponseDto> getAllProducts(Pageable pageable) {
+        return productRepository.findAll( pageable)   .map(ProductResponseDto::toDto);
     }
 
-    public Product getProduct(int id) {
+    public ProductResponseDto getProduct(int id) {
 
-        return productRepository.findById(id).orElseThrow(
+        Product product = productRepository.findById(id).orElseThrow(
             () -> new ResourceNotFoundException("Product not found with id: " + id));
+        return  ProductResponseDto.toDto(product);    
     }
 
-    public List<Product> searchProducts(String name) {
-        return productRepository.findByNameContainingIgnoreCase(name);
+    public List<ProductResponseDto> searchProducts(String name) {
+        return productRepository.findByNameContainingIgnoreCase(name).stream()
+        .map(ProductResponseDto::toDto).toList();
     }
 
-    public List<Product> getProductsByCategory(int categoryId) {
-        return productRepository.findByCategoryId(categoryId);
+    public List<ProductResponseDto> getProductsByCategory(int categoryId) {
+        return productRepository.findByCategoryId(categoryId).stream()
+                .map(ProductResponseDto::toDto)
+                .toList();
     }
 
-    public Product createProduct(Product product) {
-        return productRepository.save(product);
-    }
+    public ProductResponseDto createProduct(ProductRequestDto dto) {
+        Product product = ProductRequestDto.fromDto(dto);
+        Category category = categoryRepository.findById(dto.getCategoryId())
+                .orElseThrow(
+                    () -> new ResourceNotFoundException(
+                        "Category not found with id: " + dto.getCategoryId()));
 
+        product.setCategory(category);
+
+        Product savedProduct = productRepository.save(product);
+
+        return ProductResponseDto.toDto(savedProduct);
+    }
+    public ProductResponseDto updateProduct(int id, ProductRequestDto dto) {
+
+        Product existingProduct = productRepository.findById(id)
+                .orElseThrow(
+                    () -> new ResourceNotFoundException(
+                        "Product not found with id: " + id));
+
+        existingProduct.setName(dto.getName());
+        existingProduct.setPrice(dto.getPrice());
+        existingProduct.setStock(dto.getStock());
+
+        Category category = categoryRepository.findById(dto.getCategoryId())
+                .orElseThrow(
+                    () -> new ResourceNotFoundException(
+                        "Category not found with id: " + dto.getCategoryId()));
+
+        existingProduct.setCategory(category);
+        Product updatedProduct = productRepository.save(existingProduct);
+        return ProductResponseDto.toDto(updatedProduct);
+    }
+/*
     public Product updateProduct(int id, Product updatedProduct) {
 
         Product existingProduct = getProduct(id);
@@ -53,9 +95,13 @@ public class ProductService {
 
         return productRepository.save(existingProduct);
     }
+        */
 
     public void deleteProduct(int id) {
-        Product product = getProduct(id);
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Product not found with id: " + id));
+
         productRepository.delete(product);
     }
 }
