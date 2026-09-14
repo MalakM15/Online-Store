@@ -1,6 +1,4 @@
 package com.myapp.cruddemo.dto;
-import com.myapp.cruddemo.entity.Product;
-import com.myapp.cruddemo.entity.Category;
 
 public class ProductResponseDto {
 
@@ -9,29 +7,20 @@ public class ProductResponseDto {
     private String description;
     private double price;
     private int stock;
-    private Category category;
-    //private int categoryId;
-    //private String categoryName;
+    private int categoryId;
+    private String categoryName;
+
     public ProductResponseDto(){
     }
 
-    public ProductResponseDto(int id,String name,String description, double price, int stock, Category category) {
+    public ProductResponseDto(int id,String name,String description, double price, int stock, int categoryId, String categoryName) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.price = price;
         this.stock = stock;
-        this.category = category;
-    }
-
-    public static ProductResponseDto toDto(Product product){
-            return new ProductResponseDto(
-            product.getId(),
-            product.getName(),
-            product.getDescription(),
-            product.getPrice(),
-            product.getStock(),
-            product.getCategory() );
+        this.categoryId = categoryId;
+        this.categoryName = categoryName;
     }
     public int getId() {
         return id;
@@ -72,18 +61,26 @@ public class ProductResponseDto {
         this.stock = stock;
     }
 
-    public Category getCategory() {
-        return category;
+    public int getCategoryId() {
+        return categoryId;
     }
 
-    public void setCategory(Category category) {
-        this.category = category;
+    public void setCategoryId(int categoryId) {
+        this.categoryId = categoryId;
+    }
+
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
     }
 
     @Override
     public String toString() {
-        return "ProductRequestDto [name=" + name + ", price=" + price + ", stock=" + stock + ", category=" + category
-                + "]";
+        return "ProductRequestDto [name=" + name + ", price=" + price + ", stock=" + stock + ", categoryId=" + categoryId
+                + ", categoryName=" + categoryName + "]";
     }
 
     

@@ -7,6 +7,7 @@ import com.myapp.cruddemo.entity.Category;
 
 import com.myapp.cruddemo.dto.ProductResponseDto;
 import com.myapp.cruddemo.dto.ProductRequestDto;
+import com.myapp.cruddemo.mapper.ProductMapper;
 import com.myapp.cruddemo.exception.*;
 
 import org.springframework.stereotype.Service;
@@ -20,37 +21,39 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final ProductMapper productMapper;
 
-
-    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository) {
+    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository, ProductMapper productMapper) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
+        this.productMapper = productMapper;
     }
 
     public Page<ProductResponseDto> getAllProducts(Pageable pageable) {
-        return productRepository.findAll( pageable)   .map(ProductResponseDto::toDto);
+        return productRepository.findAll( pageable)   .map(productMapper::entityToResponseDto);
     }
-
+        
+        
     public ProductResponseDto getProduct(int id) {
 
         Product product = productRepository.findById(id).orElseThrow(
             () -> new ResourceNotFoundException("Product not found with id: " + id));
-        return  ProductResponseDto.toDto(product);    
+        return  productMapper.entityToResponseDto(product);    
     }
 
     public List<ProductResponseDto> searchProducts(String name) {
         return productRepository.findByNameContainingIgnoreCase(name).stream()
-        .map(ProductResponseDto::toDto).toList();
+        .map(productMapper::entityToResponseDto).toList();
     }
 
     public List<ProductResponseDto> getProductsByCategory(int categoryId) {
         return productRepository.findByCategoryId(categoryId).stream()
-                .map(ProductResponseDto::toDto)
+                .map(productMapper::entityToResponseDto)
                 .toList();
     }
 
     public ProductResponseDto createProduct(ProductRequestDto dto) {
-        Product product = ProductRequestDto.fromDto(dto);
+        Product product = productMapper.dtoToEntity(dto);
         Category category = categoryRepository.findById(dto.getCategoryId())
                 .orElseThrow(
                     () -> new ResourceNotFoundException(
@@ -60,7 +63,7 @@ public class ProductService {
 
         Product savedProduct = productRepository.save(product);
 
-        return ProductResponseDto.toDto(savedProduct);
+        return productMapper.entityToResponseDto(savedProduct);
     }
     public ProductResponseDto updateProduct(int id, ProductRequestDto dto) {
 
@@ -80,7 +83,7 @@ public class ProductService {
 
         existingProduct.setCategory(category);
         Product updatedProduct = productRepository.save(existingProduct);
-        return ProductResponseDto.toDto(updatedProduct);
+        return productMapper.entityToResponseDto(updatedProduct);
     }
 /*
     public Product updateProduct(int id, Product updatedProduct) {

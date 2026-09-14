@@ -1,5 +1,4 @@
 package com.myapp.cruddemo.dto;
-import com.myapp.cruddemo.entity.Product;
 
 public class ProductRequestDto {
 
@@ -20,16 +19,6 @@ public class ProductRequestDto {
         this.categoryId = categoryId;
     }
 
-    public static Product fromDto(ProductRequestDto dto){
-        Product product = new Product();
-
-        product.setName(dto.getName());
-        product.setPrice(dto.getPrice());
-        product.setStock(dto.getStock());
-
-
-        return product;
-    }
     public String getName() {
         return name;
     }
@@ -64,7 +53,7 @@ public class ProductRequestDto {
 
     @Override
     public String toString() {
-        return "ProductRequestDto [name=" + name + ", price=" + price + ", stock=" + stock
+        return "ProductRequestDto [name=" + name + ", price=" + price + ", stock=" + stock + ", categoryId=" + categoryId 
                 + "]";
     }
     
